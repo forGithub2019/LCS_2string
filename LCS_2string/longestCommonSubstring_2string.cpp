@@ -3,8 +3,10 @@
 #include <string.h> 
 #include <stdlib.h> 
 #include <iostream>
+#include <fstream>
+#include <string>
 using namespace std;
-#define MAX_CHAR 256 
+#define MAX_CHAR 10000
 
 struct SuffixTreeNode {
 	struct SuffixTreeNode *children[MAX_CHAR];
@@ -29,7 +31,7 @@ struct SuffixTreeNode {
 
 typedef struct SuffixTreeNode Node;
 
-char text[100]; //Input string 
+char text[10000]; //Input string 
 Node *root = NULL; //Pointer to root node 
 
 /*lastNewNode will point to newly created internal node,
@@ -303,7 +305,6 @@ suffixIndex. suffixIndex for leaf edges will be >= 0 and
 for non-leaf edges will be -1*/
 void buildSuffixTree()
 {
-	size = strlen(text);
 	int i;
 	rootEnd = (int*)malloc(sizeof(int));
 	*rootEnd = -1;
@@ -385,6 +386,20 @@ void getLongestCommonSubstring()
 	printf("\n");
 }
 
+void my_fout(int * s1 , int size1, char* fname){
+	ofstream fout(fname);
+	for (int i = 0; i < size1; i++){
+		if (i % 8 == 0)
+		if (i % 16 == 0)
+			fout << endl;
+		else fout << " ";
+		fout << "s[" << i << "]=" << int(s1[i]) << " ";
+	}
+	fout << "over" << endl;
+	fout.close();
+	return;
+}
+
 
 // driver program to test above functions 
 int main(int argc, char *argv[])
@@ -397,58 +412,115 @@ int main(int argc, char *argv[])
 	// strcpy_s(text, "geeksforgeeks$"); buildSuffixTree(); 
 	// strcpy_s(text, "THIS IS A TEST TEXT$"); buildSuffixTree(); 
 	// strcpy_s(text, "AABAACAADAABAAABAA$"); buildSuffixTree(); 
+	string filename = "in1_2016.txt";
+	ifstream fin(filename);
+
+	int s1[5000];         //好神奇，这里我写成int * s1=new int(5000)程序就会出现奇怪的错误。
+	if (!fin){
+		cout << "fin error";
+		system("pause");
+		exit(1);
+	}
+	int flag[300];
+	memset(flag, 0, sizeof(flag));
+	int a;
+	/*for (a = 128; a < 256;a++)
+	for (int aa = a + 1; aa < 256;aa++)
+	if (char(a)==char(aa))
+		cout << a <<" "<< aa<<" "<< char(a)<<" "<<char(aa)<<"     ";
+	else cout << a << aa;
+	system("pause");  //这段用来测试char（128-255）之间的字符是否有重复 答案是没有*/
+	int size1 = 0, size0=0;
+	while (fin >> a){
+		if (a == 512)
+			break;
+		s1[size0] = a;
+		flag[a] = 1;
+		text[size0] = char(a);
+		//cout << a << text[size0] <<size0<< endl;
+		size0++;
+	}
+	size1++;
+	size1 = size0;
+	text[size1 - 1] = char(17);
+	cout << text[size1 - 1];
+	fin.close();
+	cout << "size1:" << size1 << endl;
+	//my_fout(s1, size1, "out1.txt");
+	fin.open("in2_2012r2.txt");
+	while (fin >> a){
+		if (a == 512)
+			break;
+		flag[a] = 1;
+		s1[size0] = a;
+		text[size0] = char(a);
+		//cout << a << text[size0] << size0 << endl;
+		size0++;
+	}
+	text[size0] = char(25);
+	size0++;
+	cout << "size0:" << size0 << endl;
+	cout << "no use char:" << endl;
+	for (int i = 0; i < 256; i++){
+		if (!flag[i]){
+			cout << i << " ";
+		}
+	}
+	
 
 
-	size1 = 7;
 
-	strcpy_s(text, "xabxac#abcabxabcd$");
+	size = size0;
+	//strcpy_s(text, "xabxac#abcabxabcd$");
 	buildSuffixTree();
-	printf("Longest Common Substring in xabxac and abcabxabcd is: ");
+	printf("Longest Common Substring is: ");
 	getLongestCommonSubstring();
 	//Free the dynamically allocated memory 
 	freeSuffixTreeByPostOrder(root);
+	cout << "over" << endl;
 
-	size1 = 10;
-	strcpy_s(text, "xabxaabxa#babxba$"); 
-	buildSuffixTree();
-	printf("Longest Common Substring in xabxaabxa and babxba is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
-	freeSuffixTreeByPostOrder(root);
+	//size1 = 10;
+	//strcpy_s(text, "xabxaabxa#babxba$"); 
+	//buildSuffixTree();
+	//printf("Longest Common Substring in xabxaabxa and babxba is: ");
+	//getLongestCommonSubstring();
+	////Free the dynamically allocated memory 
+	//freeSuffixTreeByPostOrder(root);
 
-	size1 = 14;
-	strcpy_s(text, "GeeksforGeeks#GeeksQuiz$"); 
-	buildSuffixTree();
-	printf("Longest Common Substring in GeeksforGeeks and GeeksQuiz is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
-	freeSuffixTreeByPostOrder(root);
+	//size1 = 14;
+	//strcpy_s(text, "GeeksforGeeks#GeeksQuiz$"); 
+	//buildSuffixTree();
+	//printf("Longest Common Substring in GeeksforGeeks and GeeksQuiz is: ");
+	//getLongestCommonSubstring();
+	////Free the dynamically allocated memory 
+	//freeSuffixTreeByPostOrder(root);
 
-	size1 = 26;
-	strcpy_s(text, "OldSite:GeeksforGeeks.org#NewSite:GeeksQuiz.com$");
-	buildSuffixTree();
-	printf("Longest Common Substring in OldSite:GeeksforGeeks.org");
-	printf(" and NewSite:GeeksQuiz.com is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
-	freeSuffixTreeByPostOrder(root);
+	//size1 = 26;
+	//strcpy_s(text, "OldSite:GeeksforGeeks.org#NewSite:GeeksQuiz.com$");
+	//buildSuffixTree();
+	//printf("Longest Common Substring in OldSite:GeeksforGeeks.org");
+	//printf(" and NewSite:GeeksQuiz.com is: ");
+	//getLongestCommonSubstring();
+	////Free the dynamically allocated memory 
+	//freeSuffixTreeByPostOrder(root);
 
-	size1 = 6;
-	strcpy_s(text, "abcde#fghie$");
-	buildSuffixTree();
-	printf("Longest Common Substring in abcde and fghie is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
-	freeSuffixTreeByPostOrder(root);
+	//size1 = 6;
+	//strcpy_s(text, "abcde#fghie$");
+	//buildSuffixTree();
+	//printf("Longest Common Substring in abcde and fghie is: ");
+	//getLongestCommonSubstring();
+	////Free the dynamically allocated memory 
+	//freeSuffixTreeByPostOrder(root);
 
-	size1 = 6;
-	strcpy_s(text, "pqrst#uvwxyz$");
-	buildSuffixTree();
-	printf("Longest Common Substring in pqrst and uvwxyz is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
-	freeSuffixTreeByPostOrder(root);
+	//size1 = 6;
+	//strcpy_s(text, "pqrst#uvwxyz$");
+	//buildSuffixTree();
+	//printf("Longest Common Substring in pqrst and uvwxyz is: ");
+	//getLongestCommonSubstring();
+	////Free the dynamically allocated memory 
+	//freeSuffixTreeByPostOrder(root);
 
 	system("pause");
-	return 0;
+	//return 0;
+	exit(0);
 }
