@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string>
 using namespace std;
-#define MAX_CHAR 10000
+#define MAX_CHAR 260
 
 struct SuffixTreeNode {
 	struct SuffixTreeNode *children[MAX_CHAR];
@@ -31,7 +31,7 @@ struct SuffixTreeNode {
 
 typedef struct SuffixTreeNode Node;
 
-char text[10000]; //Input string 
+int text[10000]; //Input string 
 Node *root = NULL; //Pointer to root node 
 
 /*lastNewNode will point to newly created internal node,
@@ -128,10 +128,10 @@ void extendSuffixTree(int pos)
 
 		//printf("zzz int(text[activeEdge]) %i %c \n", int(text[activeEdge]), text[activeEdge]);
 
-		if (activeNode->children[int(text[activeEdge])] == NULL)
+		if (activeNode->children[text[activeEdge]] == NULL)
 		{
 			//Extension Rule 2 (A new leaf edge gets created) 
-			activeNode->children[int(text[activeEdge])] =
+			activeNode->children[text[activeEdge]] =
 				newNode(pos, &leafEnd);
 
 			/*A new leaf edge is created in above line starting
@@ -153,7 +153,7 @@ void extendSuffixTree(int pos)
 		{
 			// Get the next node at the end of edge starting 
 			// with activeEdge 
-			Node *next = activeNode->children[int(text[activeEdge])];
+			Node *next = activeNode->children[text[activeEdge]];
 			if (walkDown(next))//Do walkdown     //zzz Èç¹ûwdÁË£¬·µ»ØÖµÎª1£¬¾Í»ácontinue£¬
 				//ÔÙ×ßÒ»±éÑ­»·£¨ÒòÎªremainingSuffixCountÖµÃ»¼õÉÙ£¬
 				//ËùÒÔ²»»áÂ©µôÒ»¸öextension£©
@@ -196,7 +196,7 @@ void extendSuffixTree(int pos)
 
 			//New internal node 
 			Node *split = newNode(next->start, splitEnd);
-			activeNode->children[int(text[activeEdge])] = split;
+			activeNode->children[text[activeEdge]] = split;
 
 			//New leaf coming out of new internal node 
 			split->children[int(text[pos])] = newNode(pos, &leafEnd);  //zzz ²»È·¶¨
@@ -240,11 +240,14 @@ void extendSuffixTree(int pos)
 	}
 }
 
+ofstream fout_tree("tree.txt");
+
+
 void print(int i, int j)
 {
 	int k;
 	for (k = i; k <= j; k++)
-		printf("%c", text[k]);
+		fout_tree<<text[k]<<"-";
 }
 
 //Print the suffix tree as well along with setting suffix index 
@@ -257,7 +260,7 @@ void setSuffixIndexByDFS(Node *n, int labelHeight, string attach)   //zzzÌí¼ÓÒ»¸
 	if (n->start != -1) //A non-root node 
 	{
 		//Print the label on edge from parent to current node 
-		cout << attach.c_str();
+		fout_tree << attach.c_str();
 		print(n->start, *(n->end));
 	}
 	int leaf = 1;
@@ -267,19 +270,20 @@ void setSuffixIndexByDFS(Node *n, int labelHeight, string attach)   //zzzÌí¼ÓÒ»¸
 		if (n->children[i] != NULL)
 		{
 			if (leaf == 1 && n->start != -1)
-				printf("[%d]\n", n->suffixIndex);
+				fout_tree<<"["<<n->suffixIndex<<"]"<<endl;
 
 			//Current node is not a leaf as it has outgoing 
 			//edges from it. 
 			leaf = 0;
 			setSuffixIndexByDFS(n->children[i], labelHeight +
-				edgeLength(n->children[i]), string(attach + "---"));
+				edgeLength(n->children[i]), string(attach + "==="));
 		}
 	}
 	if (leaf == 1)
 	{
 		n->suffixIndex = size - labelHeight;
-		printf(" [%d]\n", n->suffixIndex);
+		//printf(" [%d]\n", n->suffixIndex);
+		fout_tree << "[" << n->suffixIndex << "]" << endl;
 	}
 }
 
@@ -329,6 +333,7 @@ void buildSuffixTree()
 int doTraversal(Node *n, int labelHeight, int* maxHeight,
 	int* substringStartIndex)
 {
+	//cout << "  dt" << labelHeight;
 	if (n == NULL)
 	{
 		return -1;
@@ -353,6 +358,7 @@ int doTraversal(Node *n, int labelHeight, int* maxHeight,
 				{
 					n->suffixIndex = -4;//Mark node as XY 
 					//Keep track of deepest node 
+				//	cout << "  lH:" << labelHeight;
 					if (*maxHeight < labelHeight)
 					{
 						*maxHeight = labelHeight;
@@ -363,27 +369,41 @@ int doTraversal(Node *n, int labelHeight, int* maxHeight,
 			}
 		}
 	}
-	else if (n->suffixIndex > -1 && n->suffixIndex < size1)//suffix of X 
-		return -2;//Mark node as X 
-	else if (n->suffixIndex >= size1)//suffix of Y 
-		return -3;//Mark node as Y 
+	else{
+		//cout << " else:" << n->suffixIndex<<"  size1:"<<size1<<endl ;
+		if (n->suffixIndex > -1 && n->suffixIndex < size1){//suffix of X 
+		//	cout << "return -2" << endl;
+			return -2;//Mark node as X 
+		}
+		else if (n->suffixIndex >= size1){//suffix of Y 
+		//	cout << "return -3" << endl;
+			return -3;//Mark node as Y 
+		}
+	}
 	return n->suffixIndex;
 }
 
-void getLongestCommonSubstring()
+void getLongestCommonSubstring(ofstream* fout)
 {
 	int maxHeight = 0;
 	int substringStartIndex = 0;
 	doTraversal(root, 0, &maxHeight, &substringStartIndex);
 
 	int k;
-	for (k = 0; k < maxHeight; k++)
-		printf("%c", text[k + substringStartIndex]);
-	if (k == 0)
+	for (k = 0; k < maxHeight; k++){
+		printf("%d ", text[k + substringStartIndex]);
+		*fout << text[k + substringStartIndex] << " ";
+	}
+	if (k == 0){
 		printf("No common substring");
-	else
+		*fout << "No common substring";
+	}
+	else{
 		printf(", of length: %d", maxHeight);
+		*fout << ", of length: "<<maxHeight;
+	}
 	printf("\n");
+	*fout << endl;
 }
 
 void my_fout(int * s1 , int size1, char* fname){
@@ -415,35 +435,23 @@ int main(int argc, char *argv[])
 	string filename = "in1_2016.txt";
 	ifstream fin(filename);
 
-	int s1[5000];         //ºÃÉñÆæ£¬ÕâÀïÎÒÐ´³Éint * s1=new int(5000)³ÌÐò¾Í»á³öÏÖÆæ¹ÖµÄ´íÎó¡£
 	if (!fin){
 		cout << "fin error";
 		system("pause");
 		exit(1);
 	}
-	int flag[300];
-	memset(flag, 0, sizeof(flag));
 	int a;
-	/*for (a = 128; a < 256;a++)
-	for (int aa = a + 1; aa < 256;aa++)
-	if (char(a)==char(aa))
-		cout << a <<" "<< aa<<" "<< char(a)<<" "<<char(aa)<<"     ";
-	else cout << a << aa;
-	system("pause");  //Õâ¶ÎÓÃÀ´²âÊÔchar£¨128-255£©Ö®¼äµÄ×Ö·ûÊÇ·ñÓÐÖØ¸´ ´ð°¸ÊÇÃ»ÓÐ*/
-	int size1 = 0, size0=0;
+	int size0=0;
 	while (fin >> a){
 		if (a == 512)
 			break;
-		s1[size0] = a;
-		flag[a] = 1;
-		text[size0] = char(a);
+		text[size1] = a;
 		//cout << a << text[size0] <<size0<< endl;
-		size0++;
+		size1++;
 	}
 	size1++;
-	size1 = size0;
-	text[size1 - 1] = char(17);
-	cout << text[size1 - 1];
+	size0 = size1;
+	text[size1 - 1] = 256;
 	fin.close();
 	cout << "size1:" << size1 << endl;
 	//my_fout(s1, size1, "out1.txt");
@@ -451,33 +459,29 @@ int main(int argc, char *argv[])
 	while (fin >> a){
 		if (a == 512)
 			break;
-		flag[a] = 1;
-		s1[size0] = a;
-		text[size0] = char(a);
+		text[size0] = a;
 		//cout << a << text[size0] << size0 << endl;
 		size0++;
 	}
-	text[size0] = char(25);
+	text[size0] = 257;
+	fin.close();
 	size0++;
+	my_fout(text, size0, "s.txt");
 	cout << "size0:" << size0 << endl;
-	cout << "no use char:" << endl;
-	for (int i = 0; i < 256; i++){
-		if (!flag[i]){
-			cout << i << " ";
-		}
-	}
 	
-
-
-
 	size = size0;
 	//strcpy_s(text, "xabxac#abcabxabcd$");
+	ofstream fout1("LCS.txt");
 	buildSuffixTree();
+	fout1 << "Longest Common Substring is: ";
+	//fout1.close();
 	printf("Longest Common Substring is: ");
-	getLongestCommonSubstring();
-	//Free the dynamically allocated memory 
+	getLongestCommonSubstring(&fout1);
+	fout1.close();
+	////Free the dynamically allocated memory 
 	freeSuffixTreeByPostOrder(root);
 	cout << "over" << endl;
+	fout_tree.close();
 
 	//size1 = 10;
 	//strcpy_s(text, "xabxaabxa#babxba$"); 
